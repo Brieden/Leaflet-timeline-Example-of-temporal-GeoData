@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ZH Work Density Choronology</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.12.0/moment.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+    <script src="./leaflet.timeline.js"></script>
+    <script src="./GEOJson_as_js.js"></script>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <style>
+      /*
+      * Everything fullscreen.
+      */
+      html,
+      body,
+      #map {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+
+      /*
+      * You could style the timeline however you like, but we just make it wider here.
+      */
+      .leaflet-left {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      var map = L.map("map").setView([47.38, 8.5337], 13);
+
+      L.tileLayer(
+        "https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw",
+        {
+          maxZoom: 18,
+          id: "mapbox/light-v9",
+          tileSize: 512,
+          zoomOffset: -1,
+        }
+      ).addTo(map);
+
+      var slider = L.timelineSliderControl({
+        formatOutput: function (date) {
+          return (
+            "Showing the Density of Work in the year: " +
+            moment(date).format("YYYY") +
+            "<br>based on the VZA at <a href='https://www.bfs.admin.ch/bfs/de/home/statistiken/industrie-dienstleistungen/erhebungen/statent.html'>BFS</a>"
+          );
+        },
+        waitToUpdateMap: false,
+      });
+      map.addControl(slider);
+
+      var polygonTimeline = L.timeline(HeatmapData, {
+        pointToLayer: function (feature, latlng) {
+          return L.circle(latlng, {
+            radius: feature.properties.radius,
+            fillColor: feature.properties.fillColor,
+            color: feature.properties.color,
+            weight: feature.properties.weight,
+            opacity: feature.properties.opacity,
+            fillOpacity: feature.properties.fillOpacity,
+            stroke: feature.properties.stroke,
+          });
+        },
+      });
+      polygonTimeline.addTo(map);
+
+      slider.addTimelines(polygonTimeline);
+    </script>
+  </body>
+</html>
